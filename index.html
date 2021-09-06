@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="./keyboard/css/index.css">
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.0.0.min.js"></script>
+    <script src="./keyboard/index.js"></script>
+    <script src="./keyboard-layouts/index.js"></script>
+    <script src="./keyboard-keynav/index.js"></script>
+</head>
+<body>
+	<div>
+        <div>中文
+            <input id="saveFileNameInput" />
+        </div>
+        <div class="simple-keyboard" style=""></div>
+    </div>
+	
+    <script>
+        var softKeyboard;
+        $(document).ready(function() {
+            $(document).keyup(function (event) {
+                switch (event.key) {
+                    case "ArrowUp":
+                        softKeyboard.modules.keyNavigation.up();
+                        break;
+                    case "ArrowDown":
+                        softKeyboard.modules.keyNavigation.down();
+                        break;
+                    case "ArrowLeft":
+                        softKeyboard.modules.keyNavigation.left();
+                        break;
+                    case "ArrowRight":
+                        softKeyboard.modules.keyNavigation.right();
+                        break;
+                    case "Enter":
+                        softKeyboard.modules.keyNavigation.press();
+                        break;
+                }                
+                event.preventDefault();
+            });
+
+            var KeyboardClass = window.SimpleKeyboard.default;
+            var keyNavigation = window.SimpleKeyboardKeyNavigation.default;
+            var KeyboardLayouts = window.SimpleKeyboardLayouts.default;
+            var layouts = new KeyboardLayouts();
+            var layoutCN = layouts.get("chinese");
+            layoutCN.layout.default[4] = "{EN} {space}";
+            var layoutEN = layouts.get("english");
+            layoutEN.layout.default[4] = "{ZH} {space}";
+            layoutEN.layout.shift = [
+                "~ ! @ # $ % ^ & * ( ) _ + {bksp}",
+                "{tab} Q W E R T Y U I O P { } |",
+                '{lock} A S D F G H J K L : " {enter}',
+                "{shift} Z X C V B N M < > ? {shift}",
+                "{ZH} {space}"
+            ];
+            softKeyboard = new KeyboardClass({
+                onChange: function (value) {
+                    $("#saveFileNameInput").val(value);
+                },
+                onKeyPress: function (button) {
+                    //only for en do the shit
+                    if ((button === "{shift}" || button === "{lock}") && (softKeyboard.options.layout === layoutEN.layout)) {
+                        let currentLayout = softKeyboard.options.layoutName;
+                        let shiftToggle = currentLayout === "default" ? "shift" : "default";
+                        softKeyboard.setOptions({
+                            layoutName: shiftToggle
+                        });
+                        return;
+                    }
+                    switch (button) {
+                        case "{ZH}":
+                            softKeyboard.setOptions({
+                                ...layoutCN
+                            });
+                            break;
+                        case "{EN}":
+                            softKeyboard.setOptions({
+                                ...layoutEN
+                            });
+                            break;
+                    }
+                },
+                enableKeyNavigation: true,
+                modules: [
+                    keyNavigation
+                ],
+                ...layoutEN
+            });
+        });
+	</script>
+</body>
+</html>
